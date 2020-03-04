@@ -18,25 +18,26 @@ namespace DaggerfallWorkshop.Game.Localization
     //  Note: Will expand and change over time until text database is complete.
 
     /// <summary>
-    /// Each TextGroup stores one or more TextElements.
+    /// Each TextGroup stores one or more TextElements in localization database.
     /// </summary>
+    [Serializable]
     public struct TextGroup
     {
-        public string DisplayName;
-        public LegacySources LegacySource;
-        public string PrimaryKey;
-        public string SecondaryKey;
-        public string TertiaryKey;
-        public List<TextElement> Elements;
+        public string DisplayName;              // Name of this text element shown in localization editor
+        public LegacySources LegacySource;      // Text source of text data if from classic game data (e.g. TEXT.RSC, FACTION.TXT)
+        public string PrimaryKey;               // First key to identify this text element
+        public string SecondaryKey;             // Second key to identify this text element if required
+        public string TertiaryKey;              // Third key to identify this text element if required
+        public List<TextElement> Elements;      // One or more text elements in this group - typically just a single primary element
     }
 
+    /// <summary>
+    /// Defines a single text element item in localization database.
+    /// </summary>
+    [Serializable]
     public struct TextElement
     {
-        public string Text;
-        public FontStyles Font;
-        public Color Color;
-        public JustifyStyles Justify;
-        public Vector2 Position;
-        public int SyncVersion;
+        public string Text;                     // Text with markup for this entry
+        public int SyncVersion;                 // Last sync version in case resyncing needed
     }
 }

@@ -128,8 +128,8 @@ namespace DaggerfallWorkshop.Game
         
         public static IUserInterfaceManager UIManager { get { return Instance.uiManager; } }
 
-        public Material PixelFontMaterial { get { return pixelFontMaterial; } set { pixelFontMaterial = value; } }
-        public Material SDFFontMaterial { get { return sdfFontMaterial; } set { sdfFontMaterial = value; } }
+        public Material PixelFontMaterial { get { return GetPixelFontMaterial(); } set { pixelFontMaterial = value; } }
+        public Material SDFFontMaterial { get { return GetSDFFontMaterial(); } set { sdfFontMaterial = value; } }
 
         PaperDollRenderer paperDollRenderer;
 
@@ -1302,6 +1302,16 @@ namespace DaggerfallWorkshop.Game
         #endregion
 
         #region Private Methods
+
+        Material GetPixelFontMaterial()
+        {
+            return (pixelFontMaterial) ? pixelFontMaterial : pixelFontMaterial = new Material(Shader.Find(MaterialReader._DaggerfallPixelFontShaderName));
+        }
+
+        Material GetSDFFontMaterial()
+        {
+            return (sdfFontMaterial) ? sdfFontMaterial : sdfFontMaterial = new Material(Shader.Find(MaterialReader._DaggerfallSDFFontShaderName));
+        }
 
         void DisplayStatusInfo()
         {

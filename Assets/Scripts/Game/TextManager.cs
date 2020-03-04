@@ -1,4 +1,4 @@
-﻿// Project:         Daggerfall Tools For Unity
+// Project:         Daggerfall Tools For Unity
 // Copyright:       Copyright (C) 2009-2020 Daggerfall Workshop
 // Web Site:        http://www.dfworkshop.net
 // License:         MIT License (http://www.opensource.org/licenses/mit-license.php)
@@ -27,6 +27,9 @@ namespace DaggerfallWorkshop.Game
 
         const string textFolderName = "Text";
         const string textColumn = "text";
+
+        public const string localizationFolderName = "Localization";
+        public const string defaultLanguage = "EN-Default";
 
         Dictionary<string, Table> textDatabases = new Dictionary<string, Table>();
 
