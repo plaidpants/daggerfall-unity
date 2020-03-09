@@ -14,6 +14,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using DaggerfallWorkshop.Utility;
+using DaggerfallWorkshop.Game.Localization;
 
 namespace DaggerfallWorkshop.Game
 {
@@ -32,6 +33,8 @@ namespace DaggerfallWorkshop.Game
         public const string defaultLanguage = "EN-Default";
 
         Dictionary<string, Table> textDatabases = new Dictionary<string, Table>();
+
+        public TextDatabase testTextDB = new TextDatabase();
 
         #endregion
 
