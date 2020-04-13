@@ -41,6 +41,54 @@ namespace DaggerfallWorkshop.Game.Localization
 
         Dictionary<string, TextGroup> textDict = new Dictionary<string, TextGroup>();
 
+        #region Public Methods
+
+        /// <summary>
+        /// Get all results from database.
+        /// Same as SearchDatabase(string.Empty).
+        /// </summary>
+        /// <returns></returns>
+        public TextGroup[] SearchDatabase()
+        {
+            return SearchDatabase(string.Empty);
+        }
+
+        /// <summary>
+        /// Search database for a specific substring pattern.
+        /// </summary>
+        /// <param name="searchString">Substring to search for. Invariant culture, ignores case. Use string.Empty for all results.</param>
+        /// <returns>Zero or more text groups with any element matching search pattern.</returns>
+        public TextGroup[] SearchDatabase(string searchString)
+        {
+            List<TextGroup> results = new List<TextGroup>();
+            foreach(var kvp in textDict)
+            {
+                if (kvp.Value.Elements != null && kvp.Value.Elements.Count > 0)
+                {
+                    if (!string.IsNullOrEmpty(searchString))
+                    {
+                        for (int i = 0; i < kvp.Value.Elements.Count; i++)
+                        {
+                            int index = kvp.Value.Elements[i].Text.IndexOf(searchString, StringComparison.InvariantCultureIgnoreCase);
+                            if (index != -1)
+                            {
+                                results.Add(kvp.Value);
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        results.Add(kvp.Value);
+                    }
+                }
+            }
+
+            return results.ToArray();
+        }
+
+        #endregion
+
         #region Importer Helpers
 
         /// <summary>
@@ -86,7 +134,6 @@ namespace DaggerfallWorkshop.Game.Localization
                 {
                     LegacySource = LegacySources.TextRSC,
                     PrimaryKey = key,
-                    SecondaryKey = null,
                     Elements = ConvertRSCTokensToTextElements(tokens),
                 };
 
@@ -94,7 +141,7 @@ namespace DaggerfallWorkshop.Game.Localization
                 db.textDict.Add(key, group);
             }
 
-            //UnityEngine.Debug.LogFormat("Added {0} TEXT.RSC entries to database with {1} overwrites.", rsc.RecordCount, overwriteCount);
+            UnityEngine.Debug.LogFormat("Added {0} TEXT.RSC entries to database with {1} overwrites.", rsc.RecordCount, overwriteCount);
         }
 
         /// <summary>

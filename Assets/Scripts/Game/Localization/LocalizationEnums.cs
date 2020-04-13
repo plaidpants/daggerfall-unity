@@ -36,10 +36,11 @@ namespace DaggerfallWorkshop.Game.Localization
     }
 
     /// <summary>
-    /// New text groups for sorting text records.
+    /// New text groups for searching and sorting text records.
     /// </summary>
     public enum TextGroups
     {
+        Any,
         Main,
         Books,
         Quests,

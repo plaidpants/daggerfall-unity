@@ -25,7 +25,6 @@ namespace DaggerfallWorkshop.Game.Localization
     {
         public LegacySources LegacySource;      // Text source of text data if from classic game data (e.g. TEXT.RSC, FACTION.TXT)
         public string PrimaryKey;               // First key to identify this text element
-        public string SecondaryKey;             // Second key to identify this text element if required
         public List<TextElement> Elements;      // One or more text elements in this group - typically just a single primary element
     }
 
