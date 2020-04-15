@@ -19,11 +19,19 @@ namespace DaggerfallWorkshop
     [CustomEditor(typeof(TextManager))]
     public class TextManagerEditor : Editor
     {
+        const int previewLengthLimit = 90;
+        const int fixedLineHeight = 18;
+        const int scrollingListHeight = 350;
+
         Vector2 scrollPos;
         string searchString = string.Empty;
         string lastSearchString = string.Empty;
         bool updateSearch = true;
         TextGroup[] searchResults = null;
+        GUIStyle buttonStyle;
+        int selectedIndex = -1;
+
+        Color selectedColor = Color.red;
 
         SerializedProperty Prop(string name)
         {
@@ -34,6 +42,15 @@ namespace DaggerfallWorkshop
         {
             // Update
             serializedObject.Update();
+
+            if (buttonStyle == null)
+            {
+                buttonStyle = new GUIStyle(GUI.skin.button);
+                buttonStyle.alignment = TextAnchor.MiddleLeft;
+                buttonStyle.fixedHeight = fixedLineHeight;
+                buttonStyle.active.background = buttonStyle.normal.background;
+                buttonStyle.margin = new RectOffset(0, 0, 0, 0);
+            }
 
             DisplayGUI();
 
@@ -77,9 +94,10 @@ namespace DaggerfallWorkshop
 
             // Searchable text database view
             EditorGUILayout.Space();
-            ShowDatabaseEditorFoldout = GUILayoutHelper.Foldout(ShowDatabaseEditorFoldout, new GUIContent("Text Database"), () =>
+            ShowDatabaseEditorFoldout = GUILayoutHelper.Foldout(ShowDatabaseEditorFoldout, new GUIContent("Search Text Database"), () =>
             {
                 // Search bar
+                EditorGUILayout.Space();
                 GUILayout.BeginHorizontal(GUI.skin.FindStyle("Toolbar"));
                 searchString = GUILayout.TextField(searchString, GUI.skin.FindStyle("ToolbarSeachTextField"));
                 if (GUILayout.Button("", GUI.skin.FindStyle("ToolbarSeachCancelButton")))
@@ -97,28 +115,45 @@ namespace DaggerfallWorkshop
                     lastSearchString = searchString;
                     updateSearch = false;
                     scrollPos = Vector2.zero;
+                    selectedIndex = -1;
                 }
 
-                // Scrolling text list preview
-                scrollPos = GUILayoutHelper.ScrollView(scrollPos, () =>
+                scrollPos = EditorGUILayout.BeginScrollView(scrollPos, true, true, GUILayout.Height(scrollingListHeight));
+                for (int i = 0; i < searchResults.Length; i++)
                 {
-                    for (int i = 0; i < searchResults.Length; i++)
-                    {
-                        ShowTextGroupPreviewItem(searchResults[i].Elements[0].Text);
-                    }
-                });
+                    ShowTextGroupPreviewItem(searchResults[i].PrimaryKey, searchResults[i].Elements[0].Text, i, buttonStyle);
+                }
+                EditorGUILayout.EndScrollView();
             });
         }
 
-        void ShowTextGroupPreviewItem(string text)
+        void ShowTextGroupPreviewItem(string key, string text, int index, GUIStyle style)
         {
-            const int lengthLimit = 90;
+            float startPos = -scrollPos.y;
+            float itemTopPos = startPos + index * fixedLineHeight;
+            float itemBottomPos = itemTopPos + fixedLineHeight;
 
-            // Cull text if over length limit
-            if (text.Length > lengthLimit)
-                text = text.Substring(0, lengthLimit);
+            if (itemBottomPos < 0 || itemTopPos > scrollingListHeight)
+            {
+                // Draw empty line outside of visible scroller area
+                GUILayout.Space(fixedLineHeight);
+            }
+            else
+            {
+                GUI.backgroundColor = (selectedIndex == index) ? selectedColor : Color.clear;
 
-            EditorGUILayout.SelectableLabel(text, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                string previewText = string.Format("{0} - {1}", key, text);
+                if (previewText.Length > previewLengthLimit)
+                    previewText = previewText.Substring(0, previewLengthLimit);
+
+                style.fontStyle = (selectedIndex == index) ? FontStyle.Bold : style.fontStyle = FontStyle.Normal;
+
+                if (GUILayout.Button(previewText, style))
+                {
+                    selectedIndex = index;
+                    //Debug.LogFormat("Selected key={0}", searchResults[index].PrimaryKey);
+                }
+            }
         }
     }
 }
