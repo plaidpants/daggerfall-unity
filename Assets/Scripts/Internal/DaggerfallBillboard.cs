@@ -100,10 +100,6 @@ namespace DaggerfallWorkshop
                     // Example is the treasury in Daggerfall castle, some action records flow through the quest item marker
                     meshRenderer.enabled = false;
                 }
-
-                // General billboard shadows if enabled
-                if (DaggerfallUnity.Settings.GeneralBillboardShadows)
-                    meshRenderer.shadowCastingMode = ShadowCastingMode.TwoSided;
             }
         }
 
@@ -122,7 +118,11 @@ namespace DaggerfallWorkshop
             }
 
             // Rotate to face camera in game
-            if (mainCamera && Application.isPlaying)
+            // Do not rotate if MeshRenderer disabled. The player can't see it anyway and this could be a hidden editor marker with child objects.
+            // In the case of hidden editor markers with child treasure objects, we don't want a 3D replacement spinning around like a billboard.
+            // Treasure objects are parented to editor marker in this way as the moving action data for treasure is actually on editor marker parent.
+            // Visible child of treasure objects have their own MeshRenderer and DaggerfallBillboard to apply rotations.
+            if (mainCamera && Application.isPlaying && meshRenderer.enabled)
             {
                 float y = (FaceY) ? mainCamera.transform.forward.y : 0;
                 Vector3 viewDirection = -new Vector3(mainCamera.transform.forward.x, y, mainCamera.transform.forward.z);
@@ -350,6 +350,10 @@ namespace DaggerfallWorkshop
 #endif
             }
 
+            // General billboard shadows if enabled
+            bool isLightArchive = (archive == TextureReader.LightsTextureArchive);
+            meshRenderer.shadowCastingMode = (DaggerfallUnity.Settings.GeneralBillboardShadows && !isLightArchive) ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off;
+
             // Add NPC trigger collider
             if (summary.FlatType == FlatTypes.NPC)
             {
@@ -366,7 +370,7 @@ namespace DaggerfallWorkshop
         /// <param name="texture">Texture2D to set on material.</param>
         /// <param name="size">Size of billboard quad in normal units (not Daggerfall units).</param>
         /// <returns>Material.</returns>
-        public Material SetMaterial(Texture2D texture, Vector2 size)
+        public Material SetMaterial(Texture2D texture, Vector2 size, bool isLightArchive = false)
         {
             // Get DaggerfallUnity
             DaggerfallUnity dfUnity = DaggerfallUnity.Instance;
@@ -404,6 +408,9 @@ namespace DaggerfallWorkshop
                 Destroy(oldMesh);
 #endif
             }
+
+            // General billboard shadows if enabled
+            meshRenderer.shadowCastingMode = (DaggerfallUnity.Settings.GeneralBillboardShadows && !isLightArchive) ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off;
 
             return material;
         }
