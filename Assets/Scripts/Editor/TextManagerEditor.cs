@@ -11,8 +11,11 @@
 
 using UnityEngine;
 using UnityEditor;
+using System.Collections;
+using System.Collections.Generic;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Localization;
+using UnityEditorInternal;
 
 namespace DaggerfallWorkshop
 {
@@ -33,9 +36,29 @@ namespace DaggerfallWorkshop
 
         Color selectedColor = Color.red;
 
+        List<string> records = new List<string>();
+        ReorderableList recordsListView;
+
         SerializedProperty Prop(string name)
         {
             return serializedObject.FindProperty(name);
+        }
+
+        private void OnEnable()
+        {
+            recordsListView = new ReorderableList(records, typeof(string), true, true, true, true);
+            recordsListView.drawElementCallback = DrawListItems;
+            recordsListView.drawHeaderCallback = DrawHeader;
+        }
+
+        void DrawHeader(Rect rect)
+        {
+            string name = "Stuff";
+            EditorGUI.LabelField(rect, name);
+        }
+
+        void DrawListItems(Rect rect, int index, bool isActive, bool isFocused)
+        {
         }
 
         public override void OnInspectorGUI()
@@ -94,7 +117,7 @@ namespace DaggerfallWorkshop
 
             // Searchable text database view
             EditorGUILayout.Space();
-            ShowDatabaseEditorFoldout = GUILayoutHelper.Foldout(ShowDatabaseEditorFoldout, new GUIContent("Search Text Database"), () =>
+            ShowDatabaseEditorFoldout = GUILayoutHelper.Foldout(ShowDatabaseEditorFoldout, new GUIContent("Record Editor"), () =>
             {
                 // Search bar
                 EditorGUILayout.Space();
@@ -124,6 +147,10 @@ namespace DaggerfallWorkshop
                     ShowTextGroupPreviewItem(searchResults[i].PrimaryKey, searchResults[i].Elements[0].Text, i, buttonStyle);
                 }
                 EditorGUILayout.EndScrollView();
+
+                // Subrecord list
+                EditorGUILayout.Space();
+                recordsListView.DoLayoutList();
             });
         }
 
@@ -133,6 +160,7 @@ namespace DaggerfallWorkshop
             float itemTopPos = startPos + index * fixedLineHeight;
             float itemBottomPos = itemTopPos + fixedLineHeight;
 
+            Color oldBackgroundColor = GUI.backgroundColor;
             if (itemBottomPos < 0 || itemTopPos > scrollingListHeight)
             {
                 // Draw empty line outside of visible scroller area
@@ -154,6 +182,7 @@ namespace DaggerfallWorkshop
                     //Debug.LogFormat("Selected key={0}", searchResults[index].PrimaryKey);
                 }
             }
+            GUI.backgroundColor = oldBackgroundColor;
         }
     }
 }
