@@ -71,6 +71,7 @@ namespace DaggerfallWorkshop
         public int RetroRenderingMode { get; set; }
         public int PostProcessingInRetroMode { get; set; }
         public bool UseMipMapsInRetroMode { get; set; }
+        public int PalettizationLUTShift { get; set; }
         public bool VSync { get; set; }
         public int TargetFrameRate { get; set; }
         public bool Fullscreen { get; set; }
@@ -123,8 +124,8 @@ namespace DaggerfallWorkshop
         public bool EnableGeographicBackgrounds { get; set; }
         public bool EnableArrowCounter { get; set; }
         public bool DungeonExitWagonPrompt { get; set; }
+        public bool TravelMapLocationsOutline { get; set; }
         public bool IllegalRestWarning { get; set; }
-        public int LoiterLimitInHours { get; set; }
         public bool LargeHUD { get; set; }
         public float LargeHUDScale { get; set; }
 
@@ -136,11 +137,15 @@ namespace DaggerfallWorkshop
         public bool InvertMouseVertical { get; set; }
         public bool MouseLookSmoothing { get; set; }
         public float MouseLookSensitivity { get; set; }
+        public float JoystickLookSensitivity { get; set; }
+        public float JoystickCursorSensitivity { get; set; }
+        public float JoystickMovementThreshold { get; set; }
+
         public bool HeadBobbing { get; set; }
         public int Handedness { get; set; }
         public float WeaponAttackThreshold { get; set; }
         public float WeaponSensitivity { get; set; }
-        public float MoveSpeedAcceleration { get; set; }
+        public bool MovementAcceleration { get; set; }
         public bool ToggleSneak { get; set; }
         public bool ClickToAttack { get; set; }
         public int CameraRecoilStrength { get; set; }
@@ -186,6 +191,7 @@ namespace DaggerfallWorkshop
         public bool EnhancedCombatAI { get; set; }
         public bool GuildQuestListBox { get; set; }
         public bool BowLeftHandWithSwitching { get; set; }
+        public int LoiterLimitInHours { get; set; }
 
         #endregion
 
@@ -209,6 +215,7 @@ namespace DaggerfallWorkshop
             RetroRenderingMode = GetInt(sectionVideo, "RetroRenderingMode", 0, 2);
             PostProcessingInRetroMode = GetInt(sectionVideo, "PostProcessingInRetroMode");
             UseMipMapsInRetroMode = GetBool(sectionVideo, "UseMipMapsInRetroMode");
+            PalettizationLUTShift = GetInt(sectionVideo, "PalettizationLUTShift");
             VSync = GetBool(sectionVideo, "VSync");
             TargetFrameRate = GetInt(sectionVideo, "TargetFrameRate", 0, 300);
             Fullscreen = GetBool(sectionVideo, "Fullscreen");
@@ -258,8 +265,8 @@ namespace DaggerfallWorkshop
             EnableGeographicBackgrounds = GetBool(sectionGUI, "EnableGeographicBackgrounds");
             EnableArrowCounter = GetBool(sectionGUI, "EnableArrowCounter");
             DungeonExitWagonPrompt = GetBool(sectionGUI, "DungeonExitWagonPrompt");
+            TravelMapLocationsOutline = GetBool(sectionGUI, "TravelMapLocationsOutline");
             IllegalRestWarning = GetBool(sectionGUI, "IllegalRestWarning");
-            LoiterLimitInHours = GetInt(sectionGUI, "LoiterLimitInHours");
             LargeHUD = GetBool(sectionGUI, "LargeHUD");
             LargeHUDScale = GetFloat(sectionGUI, "LargeHUDScale", 0.25f, 2.0f);
 
@@ -269,7 +276,10 @@ namespace DaggerfallWorkshop
             InvertMouseVertical = GetBool(sectionControls, "InvertMouseVertical");
             MouseLookSmoothing = GetBool(sectionControls, "MouseLookSmoothing");
             MouseLookSensitivity = GetFloat(sectionControls, "MouseLookSensitivity", 0.1f, 8.0f);
-            MoveSpeedAcceleration = GetFloat(sectionControls, "MoveSpeedAcceleration", InputManager.minAcceleration, InputManager.maxAcceleration);
+            JoystickLookSensitivity = GetFloat(sectionControls, "JoystickLookSensitivity", 0.1f, 4.0f);
+            JoystickCursorSensitivity = GetFloat(sectionControls, "JoystickCursorSensitivity", 0.1f, 5.0f);
+            JoystickMovementThreshold = GetFloat(sectionControls, "JoystickMovementThreshold", 0.0f, 1.0f);
+            MovementAcceleration = GetBool(sectionControls, "MovementAcceleration");
             ToggleSneak = GetBool(sectionControls, "ToggleSneak");
             HeadBobbing = GetBool(sectionControls, "HeadBobbing");
             Handedness = GetInt(sectionControls, "Handedness", 0, 3);
@@ -315,6 +325,7 @@ namespace DaggerfallWorkshop
             EnhancedCombatAI = GetBool(sectionEnhancements, "EnhancedCombatAI");
             GuildQuestListBox = GetBool(sectionEnhancements, "GuildQuestListBox");
             BowLeftHandWithSwitching = GetBool(sectionEnhancements, "BowLeftHandWithSwitching");
+            LoiterLimitInHours = GetInt(sectionEnhancements, "LoiterLimitInHours");
         }
 
         /// <summary>
@@ -332,6 +343,7 @@ namespace DaggerfallWorkshop
             SetInt(sectionVideo, "RetroRenderingMode", RetroRenderingMode);
             SetInt(sectionVideo, "PostProcessingInRetroMode", PostProcessingInRetroMode);
             SetBool(sectionVideo, "UseMipMapsInRetroMode", UseMipMapsInRetroMode);
+            SetInt(sectionVideo, "PalettizationLUTShift", PalettizationLUTShift);
             SetBool(sectionVideo, "VSync", VSync);
             SetInt(sectionVideo, "TargetFrameRate", TargetFrameRate);
             SetBool(sectionVideo, "Fullscreen", Fullscreen);
@@ -382,8 +394,8 @@ namespace DaggerfallWorkshop
             SetBool(sectionGUI, "EnableGeographicBackgrounds", EnableGeographicBackgrounds);
             SetBool(sectionGUI, "EnableArrowCounter", EnableArrowCounter);
             SetBool(sectionGUI, "DungeonExitWagonPrompt", DungeonExitWagonPrompt);
+            SetBool(sectionGUI, "TravelMapLocationsOutline", TravelMapLocationsOutline);
             SetBool(sectionGUI, "IllegalRestWarning", IllegalRestWarning);
-            SetInt(sectionGUI, "LoiterLimitInHours", LoiterLimitInHours);
             SetBool(sectionGUI, "LargeHUD", LargeHUD);
             SetFloat(sectionGUI, "LargeHUDScale", LargeHUDScale);
 
@@ -393,7 +405,10 @@ namespace DaggerfallWorkshop
             SetBool(sectionControls, "InvertMouseVertical", InvertMouseVertical);
             SetBool(sectionControls, "MouseLookSmoothing", MouseLookSmoothing);
             SetFloat(sectionControls, "MouseLookSensitivity", MouseLookSensitivity);
-            SetFloat(sectionControls, "MoveSpeedAcceleration", MoveSpeedAcceleration);
+            SetFloat(sectionControls, "JoystickLookSensitivity", JoystickLookSensitivity);
+            SetFloat(sectionControls, "JoystickCursorSensitivity", JoystickCursorSensitivity);
+            SetFloat(sectionControls, "JoystickMovementThreshold", JoystickMovementThreshold);
+            SetBool(sectionControls, "MovementAcceleration", MovementAcceleration);
             SetBool(sectionControls, "ToggleSneak", ToggleSneak);
             SetBool(sectionControls, "HeadBobbing", HeadBobbing);
             SetInt(sectionControls, "Handedness", Handedness);
@@ -432,6 +447,7 @@ namespace DaggerfallWorkshop
             SetBool(sectionEnhancements, "EnhancedCombatAI", EnhancedCombatAI);
             SetBool(sectionEnhancements, "GuildQuestListBox", GuildQuestListBox);
             SetBool(sectionEnhancements, "BowLeftHandWithSwitching", BowLeftHandWithSwitching);
+            SetInt(sectionEnhancements, "LoiterLimitInHours", LoiterLimitInHours);
 
             // Write settings to persistent file
             WriteSettingsFile();
