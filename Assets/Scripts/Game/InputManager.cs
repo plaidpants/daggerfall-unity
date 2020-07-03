@@ -48,6 +48,7 @@ namespace DaggerfallWorkshop.Game
         //These three dictionaries are built for InputManager.GetAxisRaw(...), specifically to
         //deal with raising KeyUp events, since Unity does not provide an "OnAxisValueChange" event
         Dictionary<int, float> previousAxisRaw = new Dictionary<int, float>();
+        List<KeyValuePair<int, float>> previousAxisRawQueue = new List<KeyValuePair<int, float>>();
         Dictionary<int, bool> upAxisRaw = new Dictionary<int, bool>();
         Dictionary<int, bool> downAxisRaw = new Dictionary<int, bool>();
 
@@ -100,6 +101,8 @@ namespace DaggerfallWorkshop.Game
         int controllerCursorHeight = 32;
         float controllerCursorHorizontalSpeed = 300.0F;
         float controllerCursorVerticalSpeed = 300.0F;
+
+        bool pauseController = false;
 
         #endregion
 
@@ -184,7 +187,7 @@ namespace DaggerfallWorkshop.Game
 
         public bool UsingController
         {
-            get { return usingControllerCursor; }
+            get { return usingControllerCursor && EnableController && !pauseController; }
         }
 
         public KeyCode LastKeyDown { get; private set; }
@@ -197,7 +200,7 @@ namespace DaggerfallWorkshop.Game
 
         public Vector3 MousePosition {
             get {
-                if (usingControllerCursor)
+                if (UsingController)
                     return controllerCursorPosition;
                 else
                     return Input.mousePosition;
@@ -225,6 +228,9 @@ namespace DaggerfallWorkshop.Game
         }
 
         public bool MaximizeJoystickMovement { get; set; }
+        public float JoystickDeadzone { get; set; }
+
+        public bool EnableController { get; set; }
 
         #endregion
 
@@ -385,6 +391,10 @@ namespace DaggerfallWorkshop.Game
             // Clear current actions
             currentActions.Clear();
 
+            foreach (var kv in previousAxisRawQueue)
+                previousAxisRaw[kv.Key] = kv.Value;
+            previousAxisRawQueue.Clear();
+
             // Clear look and mouse axes
             mouseX = 0;
             mouseY = 0;
@@ -434,18 +444,22 @@ namespace DaggerfallWorkshop.Game
 
             // Collect mouse axes
             mouseX = Input.GetAxisRaw("Mouse X");
-            if (mouseX == 0F && !String.IsNullOrEmpty(cameraAxisBindingCache[0]))
+            mouseY = Input.GetAxisRaw("Mouse Y");
+
+
+            if (EnableController && (mouseX == 0F || mouseY == 0F) && !String.IsNullOrEmpty(cameraAxisBindingCache[0]))
             {
-                mouseX = Input.GetAxis(cameraAxisBindingCache[0]);
+                var h = Input.GetAxis(cameraAxisBindingCache[0]);
+                var v = Input.GetAxis(cameraAxisBindingCache[1]);
+
+                if(Mathf.Sqrt(h*h + v*v) > JoystickDeadzone)
+                {
+                    mouseX = h;
+                    mouseY = v;
+                }
+
                 if (GetAxisActionInversion(AxisActions.CameraHorizontal))
                     mouseX *= -1;
-            }
-
-            mouseY = Input.GetAxisRaw("Mouse Y");
-            if (mouseY == 0F && !String.IsNullOrEmpty(cameraAxisBindingCache[1]))
-            {
-                mouseY = Input.GetAxis(cameraAxisBindingCache[1]);
-
                 if (GetAxisActionInversion(AxisActions.CameraVertical))
                     mouseY *= -1;
             }
@@ -476,24 +490,27 @@ namespace DaggerfallWorkshop.Game
 
             var horizj = Input.GetAxis(horizBinding);
             var vertj = Input.GetAxis(vertBinding);
+            var cameraHorizJ = Input.GetAxis(cameraAxisBindingCache[0]);
+            var cameraVertJ = Input.GetAxis(cameraAxisBindingCache[1]);
 
-            if (!usingControllerCursor &&
-                (horizj != 0
-                || vertj != 0
-                || Input.GetAxis(cameraAxisBindingCache[0]) != 0
-                || Input.GetAxis(cameraAxisBindingCache[1]) != 0))
+            float distMovement = Mathf.Sqrt(horizj * horizj + vertj * vertj);
+            float distCamera = Mathf.Sqrt(cameraHorizJ * cameraHorizJ + cameraVertJ * cameraVertJ);
+
+            bool movingMouse = (Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0);
+            pauseController = movingMouse;
+
+            if (!UsingController && (distMovement > JoystickDeadzone || distCamera > JoystickDeadzone))
             {
                 usingControllerCursor = true;
                 controllerCursorPosition = Input.mousePosition;
             }
-            else if (usingControllerCursor && (Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0))
-            {
+
+            if (movingMouse)
                 usingControllerCursor = false;
-            }
 
             if (CursorVisible)
             {
-                if (usingControllerCursor)
+                if (UsingController)
                 {
                     Cursor.visible = false;
                     //Cursor.lockState = CursorLockMode.Locked;
@@ -505,8 +522,11 @@ namespace DaggerfallWorkshop.Game
                     if (GetAxisActionInversion(AxisActions.MovementVertical))
                         vertj *= -1;
 
-                    controllerCursorPosition.x += JoystickCursorSensitivity * controllerCursorHorizontalSpeed * horizj * Time.fixedDeltaTime;
-                    controllerCursorPosition.y += JoystickCursorSensitivity * controllerCursorVerticalSpeed * vertj * Time.fixedDeltaTime;
+                    if (distMovement > JoystickDeadzone)
+                    {
+                        controllerCursorPosition.x += JoystickCursorSensitivity * controllerCursorHorizontalSpeed * horizj * Time.fixedDeltaTime;
+                        controllerCursorPosition.y += JoystickCursorSensitivity * controllerCursorVerticalSpeed * vertj * Time.fixedDeltaTime;
+                    }
 
                     controllerCursorPosition.x = Mathf.Clamp(controllerCursorPosition.x, 0, Screen.width);
                     controllerCursorPosition.y = Mathf.Clamp(controllerCursorPosition.y, 0, Screen.height);
@@ -896,26 +916,17 @@ namespace DaggerfallWorkshop.Game
 
         public bool GetMouseButtonDown(int button)
         {
-            if (usingControllerCursor)
-                return GetKeyDown(joystickUICache[button]);
-
-            return Input.GetMouseButtonDown(button);
+            return Input.GetMouseButtonDown(button) || (EnableController && GetKeyDown(joystickUICache[button]));
         }
 
         public bool GetMouseButtonUp(int button)
         {
-            if (usingControllerCursor)
-                return GetKeyUp(joystickUICache[button]);
-
-            return Input.GetMouseButtonUp(button);
+            return Input.GetMouseButtonUp(button) || (EnableController && GetKeyUp(joystickUICache[button]));
         }
 
         public bool GetMouseButton(int button)
         {
-            if (usingControllerCursor)
-                return GetKey(joystickUICache[button]);
-
-            return Input.GetMouseButton(button);
+            return Input.GetMouseButton(button) || (EnableController && GetKey(joystickUICache[button]));
         }
 
         public bool GetKey(KeyCode key)
@@ -1306,7 +1317,7 @@ namespace DaggerfallWorkshop.Game
         // Also updates upAxisRaw and downAxisRaw dictionaries to process GetAxisKeyDown and GetAxisKeyUp events
         float GetAxisRaw(int keyCode, int signage)
         {
-            if (keyCode < startingAxisKeyCode || !axisKeyCodeToInputAxis.ContainsKey(keyCode))
+            if (!EnableController || keyCode < startingAxisKeyCode || !axisKeyCodeToInputAxis.ContainsKey(keyCode))
                 return 0;
 
             String unityInputAxisString = axisKeyCodeToInputAxis[keyCode];
@@ -1339,7 +1350,7 @@ namespace DaggerfallWorkshop.Game
                     LastKeyDown = (KeyCode)keyCode;
             }
 
-            previousAxisRaw[keyCode] = ret;
+            previousAxisRawQueue.Add(new KeyValuePair<int, float>(keyCode, ret));
 
             return ret;
         }
@@ -1394,7 +1405,7 @@ namespace DaggerfallWorkshop.Game
         void FindInputAxisActions()
         {
 
-            if (String.IsNullOrEmpty(movementAxisBindingCache[0]) || String.IsNullOrEmpty(movementAxisBindingCache[1]))
+            if (!EnableController || String.IsNullOrEmpty(movementAxisBindingCache[0]) || String.IsNullOrEmpty(movementAxisBindingCache[1]))
                 return;
 
             float horiz = Input.GetAxis(movementAxisBindingCache[0]);
@@ -1408,7 +1419,12 @@ namespace DaggerfallWorkshop.Game
                 if (GetAxisActionInversion(AxisActions.MovementVertical))
                     vert *= -1;
 
-                float dist = Mathf.Clamp(Mathf.Sqrt(horiz*horiz + vert*vert), controllerMinimumAxisFloat, 1.0F);
+                float jd = Mathf.Sqrt(horiz*horiz + vert*vert);
+
+                if (jd <= JoystickDeadzone)
+                    return;
+
+                float dist = Mathf.Clamp(jd, controllerMinimumAxisFloat, 1.0F);
 
                 if (MaximizeJoystickMovement || dist > JoystickMovementThreshold)
                     dist = 1.0F;
