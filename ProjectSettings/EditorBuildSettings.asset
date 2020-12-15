@@ -12,7 +12,11 @@ EditorBuildSettings:
     path: Assets/Scenes/DaggerfallUnityGame.unity
     guid: 00000000000000000000000000000000
   m_configObjects:
+    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: b15cf338c9f1f25448e19e9ccd6ebc4d,
+      type: 2}
     com.unity.addressableassets: {fileID: 11400000, guid: 1ffabd7befd3d634b8ad85e8ceb61436,
       type: 2}
     com.unity.localization.settings: {fileID: 11400000, guid: b7df2f040b496394c82fa580d167aeb2,
+      type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: f954ce029b6eafd44bab37a18ad657b9,
       type: 2}
